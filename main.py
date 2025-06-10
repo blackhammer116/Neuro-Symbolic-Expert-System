@@ -8,7 +8,7 @@ class PlantWateringExpertSystem:
     PlantWateringExpertSystem: which takes a moisture level of a soil (in %)
     then based on the following rule it will predict whether to water the plant or not.
     """
-    def __init__(self, moisture_readings, moisture_threshold=55):
+    def __init__(self, moisture_threshold=55):
         """
         Initializes the expert system.
 
@@ -18,9 +18,9 @@ class PlantWateringExpertSystem:
                                              (simulating a 'neuro' part).
         """
         self.threshold = moisture_threshold
-        self.moisture_level = moisture_readings
+        # moisture_level = moisture_readings
 
-    def predict_watering(self):
+    def predict_watering(self, moisture_level):
         """
         Predicts whether to water the plant based on moisture level
         using symbolic rules and a learned threshold.
@@ -32,18 +32,21 @@ class PlantWateringExpertSystem:
             tuple: A tuple containing the prediction ('Water' or 'No Water')
                    and a confidence score (simulated).
         """
-        if self.moisture_level < self.threshold:
+        moisture_level = float(moisture_level)
+        if moisture_level < self.threshold:
             prediction = "Soil dry, needs Water"
-            confidence = 0.7 + (self.threshold - self.moisture_level) / self.threshold * 0.2
+            confidence = 0.7 + (self.threshold - moisture_level) / self.threshold * 0.2
+            confidence = min(1.0, max(0.0, confidence))
 
-        elif self.moisture_level > self.threshold:
+        elif moisture_level > self.threshold:
             prediction = "No need of watering"
-            confidence = 0.7 + (self.moisture_level - self.threshold) / (60 - self.threshold) * 0.2
+            confidence = 0.7 + (moisture_level - self.threshold) / (60 - self.threshold) * 0.2
+            confidence = min(1.0, max(0.0, confidence))
 
         else:
-            prediction = "No Water"
-            confidence = 0.7 + (self.moisture_level - self.threshold) / (60 - self.threshold) * 0.2
-
+            prediction = "Undefined"
+            confidence = 0.5
+        
         return prediction, confidence
 
 
@@ -65,30 +68,37 @@ print("Linear Regression Model Trained.")
 print(f"Intercept: {model.intercept_}")
 print(f"Coefficients: {model.coef_}")
 
-new_data = pd.DataFrame({'last_watered': [6],
+data_for_prediction = [pd.DataFrame({'last_watered': [6],
                          'soil_type_1': [1], # Loam
-                         'soil_type_2': [0]}) # Not Clay
-
-predicted_moisture = model.predict(new_data)
-print(f"\nPredicted soil moisture for last watered 6 hours ago and loam soil: {predicted_moisture[0]:.2f}%")
-
-new_data_clay = pd.DataFrame({'last_watered': [9],
+                         'soil_type_2': [0]}),
+                        pd.DataFrame({'last_watered': [9],
                               'soil_type_1': [0],
-                              'soil_type_2': [1]})
-
-predicted_moisture_clay = model.predict(new_data_clay)
-print(f"Predicted soil moisture for last watered 9 hours ago and clay soil: {predicted_moisture_clay[0]:.2f}%")
-
-new_data_sand = pd.DataFrame({'last_watered': [7],
+                              'soil_type_2': [1]}), # clay
+                        pd.DataFrame({'last_watered': [7],
                               'soil_type_1': [0], # Not Loam
-                              'soil_type_2': [0]}) # Not Clay (implies sand since drop_first=True)
+                              'soil_type_2': [0]}) # sand
+                              ] 
 
-predicted_moisture_sand = model.predict(new_data_sand)
+
+predicted_moisture_loam = model.predict(data_for_prediction[0])
+predicted_moisture_clay = model.predict(data_for_prediction[1])
+predicted_moisture_sand = model.predict(data_for_prediction[2])
+
+
+symbolic_decision = PlantWateringExpertSystem()
+
+prediction, confidence = symbolic_decision.predict_watering(predicted_moisture_loam[0])
+print("----test for loam----")
+print(f"\nPredicted soil moisture for last watered 6 hours ago and loam soil: {predicted_moisture_loam[0]:.2f}%")
+print(f"Symbolic Decision: {prediction} \nConfidence: {confidence:.2f}")
+
+prediction, confidence = symbolic_decision.predict_watering(predicted_moisture_clay[0])
+print("\n----test for clay----")
+print(f"Predicted soil moisture for last watered 9 hours ago and clay soil: {predicted_moisture_clay[0]:.2f}%")
+print(f"Symbolic Decision: {prediction} \nConfidence: {confidence:.2f}")
+
+prediction, confidence = symbolic_decision.predict_watering(predicted_moisture_sand[0])
+print("\n----test for sand----")
 print(f"Predicted soil moisture for last watered 7 hours ago and sand soil: {predicted_moisture_sand[0]:.2f}%")
-
-symbolic_decision = PlantWateringExpertSystem(predicted_moisture_sand[0])
-prediction, confidence = symbolic_decision.predict_watering()
-
-print(f"Symbolic decision based on the given moisture level: {prediction}")
-print(f"Confidence: {confidence:.2f}")
+print(f"Symbolic Decision: {prediction} \nConfidence: {confidence:.2f}")
 
