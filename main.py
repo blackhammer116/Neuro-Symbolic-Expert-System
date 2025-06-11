@@ -1,6 +1,10 @@
 from sklearn.linear_model import LinearRegression
 import numpy as np
 import pandas as pd
+from hyperon import MeTTa
+
+# Implementation of the symbolic part using metta
+metta = MeTTa()
 
 
 class PlantWateringExpertSystem:
@@ -79,26 +83,50 @@ data_for_prediction = [pd.DataFrame({'last_watered': [6],
                               'soil_type_2': [0]}) # sand
                               ] 
 
+moisture_prediction = '( '
+for i in data_for_prediction:
+    # moisture_prediction.append(float(model.predict(i)[0]))
+    moisture_prediction += str(model.predict(i)[0])
+    moisture_prediction += " "
 
-predicted_moisture_loam = model.predict(data_for_prediction[0])
-predicted_moisture_clay = model.predict(data_for_prediction[1])
-predicted_moisture_sand = model.predict(data_for_prediction[2])
+moisture_prediction += ")"
+print(str(moisture_prediction))
+
+metta_function = f"""
+(= (decisionMaker $ml)
+    (if (== (get-metatype $ml) Grounded)
+        (if (> $ml 55)
+            ("No Need of Watering plant with " $ml "% moisture")
+            ("Water your plant moisture level below threshold!! moisture level at: " $ml %)
+        )
+        ("Error: Must be of Type Grounded")
+    )
+)
+!(decisionMaker (superpose {moisture_prediction}))
+"""
+
+results = metta.run(metta_function)
+
+print(f"Results: {results}")
+# predicted_moisture_loam = model.predict(data_for_prediction[0])
+# predicted_moisture_clay = model.predict(data_for_prediction[1])
+# predicted_moisture_sand = model.predict(data_for_prediction[2])
 
 
-symbolic_decision = PlantWateringExpertSystem()
+# symbolic_decision = PlantWateringExpertSystem()
 
-prediction, confidence = symbolic_decision.predict_watering(predicted_moisture_loam[0])
-print("----test for loam----")
-print(f"\nPredicted soil moisture for last watered 6 hours ago and loam soil: {predicted_moisture_loam[0]:.2f}%")
-print(f"Symbolic Decision: {prediction} \nConfidence: {confidence:.2f}")
+# prediction, confidence = symbolic_decision.predict_watering(predicted_moisture_loam[0])
+# print("----test for loam----")
+# print(f"\nPredicted soil moisture for last watered 6 hours ago and loam soil: {predicted_moisture_loam[0]:.2f}%")
+# print(f"Symbolic Decision: {prediction} \nConfidence: {confidence:.2f}")
 
-prediction, confidence = symbolic_decision.predict_watering(predicted_moisture_clay[0])
-print("\n----test for clay----")
-print(f"Predicted soil moisture for last watered 9 hours ago and clay soil: {predicted_moisture_clay[0]:.2f}%")
-print(f"Symbolic Decision: {prediction} \nConfidence: {confidence:.2f}")
+# prediction, confidence = symbolic_decision.predict_watering(predicted_moisture_clay[0])
+# print("\n----test for clay----")
+# print(f"Predicted soil moisture for last watered 9 hours ago and clay soil: {predicted_moisture_clay[0]:.2f}%")
+# print(f"Symbolic Decision: {prediction} \nConfidence: {confidence:.2f}")
 
-prediction, confidence = symbolic_decision.predict_watering(predicted_moisture_sand[0])
-print("\n----test for sand----")
-print(f"Predicted soil moisture for last watered 7 hours ago and sand soil: {predicted_moisture_sand[0]:.2f}%")
-print(f"Symbolic Decision: {prediction} \nConfidence: {confidence:.2f}")
+# prediction, confidence = symbolic_decision.predict_watering(predicted_moisture_sand[0])
+# print("\n----test for sand----")
+# print(f"Predicted soil moisture for last watered 7 hours ago and sand soil: {predicted_moisture_sand[0]:.2f}%")
+# print(f"Symbolic Decision: {prediction} \nConfidence: {confidence:.2f}")
 
