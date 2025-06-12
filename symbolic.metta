@@ -1,3 +1,5 @@
+!(register-module! ../Neuro-Symbolic-Expert-System)
+!(import! &self main)
 
 (= (decisionMaker $ml)
     (if (== (get-metatype $ml) Grounded)
@@ -9,4 +11,4 @@
     )
 )
 
-!(decisionMaker (superpose (71.31 66.27 53.57)))
+!(decisionMaker (superpose moisture_prediction))

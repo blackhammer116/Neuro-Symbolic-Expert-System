@@ -7,51 +7,51 @@ from hyperon import MeTTa
 metta = MeTTa()
 
 
-class PlantWateringExpertSystem:
-    """
-    PlantWateringExpertSystem: which takes a moisture level of a soil (in %)
-    then based on the following rule it will predict whether to water the plant or not.
-    """
-    def __init__(self, moisture_threshold=55):
-        """
-        Initializes the expert system.
+# class PlantWateringExpertSystem:
+#     """
+#     PlantWateringExpertSystem: which takes a moisture level of a soil (in %)
+#     then based on the following rule it will predict whether to water the plant or not.
+#     """
+#     def __init__(self, moisture_threshold=55):
+#         """
+#         Initializes the expert system.
 
-        Args:
-            learned_moisture_threshold (int): A threshold representing a value
-                                             potentially learned from data
-                                             (simulating a 'neuro' part).
-        """
-        self.threshold = moisture_threshold
-        # moisture_level = moisture_readings
+#         Args:
+#             learned_moisture_threshold (int): A threshold representing a value
+#                                              potentially learned from data
+#                                              (simulating a 'neuro' part).
+#         """
+#         self.threshold = moisture_threshold
+#         # moisture_level = moisture_readings
 
-    def predict_watering(self, moisture_level):
-        """
-        Predicts whether to water the plant based on moisture level
-        using symbolic rules and a learned threshold.
+#     def predict_watering(self, moisture_level):
+#         """
+#         Predicts whether to water the plant based on moisture level
+#         using symbolic rules and a learned threshold.
 
-        Args:
-            moisture_level (int): The current moisture level (e.g., from a sensor).
+#         Args:
+#             moisture_level (int): The current moisture level (e.g., from a sensor).
 
-        Returns:
-            tuple: A tuple containing the prediction ('Water' or 'No Water')
-                   and a confidence score (simulated).
-        """
-        moisture_level = float(moisture_level)
-        if moisture_level < self.threshold:
-            prediction = "Soil dry, needs Water"
-            confidence = 0.7 + (self.threshold - moisture_level) / self.threshold * 0.2
-            confidence = min(1.0, max(0.0, confidence))
+#         Returns:
+#             tuple: A tuple containing the prediction ('Water' or 'No Water')
+#                    and a confidence score (simulated).
+#         """
+#         moisture_level = float(moisture_level)
+#         if moisture_level < self.threshold:
+#             prediction = "Soil dry, needs Water"
+#             confidence = 0.7 + (self.threshold - moisture_level) / self.threshold * 0.2
+#             confidence = min(1.0, max(0.0, confidence))
 
-        elif moisture_level > self.threshold:
-            prediction = "No need of watering"
-            confidence = 0.7 + (moisture_level - self.threshold) / (60 - self.threshold) * 0.2
-            confidence = min(1.0, max(0.0, confidence))
+#         elif moisture_level > self.threshold:
+#             prediction = "No need of watering"
+#             confidence = 0.7 + (moisture_level - self.threshold) / (60 - self.threshold) * 0.2
+#             confidence = min(1.0, max(0.0, confidence))
 
-        else:
-            prediction = "Undefined"
-            confidence = 0.5
+#         else:
+#             prediction = "Undefined"
+#             confidence = 0.5
         
-        return prediction, confidence
+#         return prediction, confidence
 
 
 data = {'last_watered': [1, 5, 10, 2, 7, 12, 3, 8, 15, 4, 6, 11],
@@ -90,24 +90,29 @@ for i in data_for_prediction:
     moisture_prediction += " "
 
 moisture_prediction += ")"
-print(str(moisture_prediction))
+print("Model Prediction Done!!!")
 
-metta_function = f"""
-(= (decisionMaker $ml)
-    (if (== (get-metatype $ml) Grounded)
-        (if (> $ml 55)
-            ("No Need of Watering plant with " $ml "% moisture")
-            ("Water your plant moisture level below threshold!! moisture level at: " $ml %)
+# Running metta from inside
+def makeLocalDecision():
+    print(str(moisture_prediction))
+
+    metta_function = f"""
+    (= (decisionMaker $ml)
+        (if (== (get-metatype $ml) Grounded)
+            (if (> $ml 55)
+                ("No Need of Watering plant with " $ml "% moisture")
+                ("Water your plant moisture level below threshold!! moisture level at: " $ml %)
+            )
+            ("Error: Must be of Type Grounded")
         )
-        ("Error: Must be of Type Grounded")
     )
-)
-!(decisionMaker (superpose {moisture_prediction}))
-"""
+    !(decisionMaker (superpose {moisture_prediction}))
+    """
 
-results = metta.run(metta_function)
+    results = metta.run(metta_function)
+    return results
 
-print(f"Results: {results}")
+
 # predicted_moisture_loam = model.predict(data_for_prediction[0])
 # predicted_moisture_clay = model.predict(data_for_prediction[1])
 # predicted_moisture_sand = model.predict(data_for_prediction[2])
@@ -130,3 +135,6 @@ print(f"Results: {results}")
 # print(f"Predicted soil moisture for last watered 7 hours ago and sand soil: {predicted_moisture_sand[0]:.2f}%")
 # print(f"Symbolic Decision: {prediction} \nConfidence: {confidence:.2f}")
 
+
+if __name__ == "__main__":
+    print(makeLocalDecision())
